@@ -1,0 +1,54 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.example.mobilebank'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.mobilebank"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation 'com.klinkerapps:android-smsmms:5.1.0'
+
+    // Required for working with PDFs (e.g., creating PDFs)
+    implementation 'com.itextpdf:itext7-core:7.2.3'
+
+    // Optional: for advanced searching/filtering
+    implementation 'com.github.seancfoley:ipaddress:5.3.3'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
