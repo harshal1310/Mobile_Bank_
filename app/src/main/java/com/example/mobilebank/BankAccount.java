@@ -7,6 +7,36 @@ public class BankAccount {
     private String logoResId;
     private String DateTime;
     private double transactionAmount;
+    private double avlBal;
+
+    public double getAvlBal() {
+        return avlBal;
+    }
+
+    public void setAvlBal(double avlBal) {
+        this.avlBal = avlBal;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
+    }
+
+    public String getSmsMsg() {
+        return smsMsg;
+    }
+
+    public void setSmsMsg(String smsMsg) {
+        this.smsMsg = smsMsg;
+    }
+
+    private String transactionType;
+    private String smsMsg;
+    //public void insertRecords(String sender, String accountNumber, Double transactionAmount, String transactionType, String smsDate, String smsMsg, Double avlBal) {
+
     public BankAccount() {
     }
 

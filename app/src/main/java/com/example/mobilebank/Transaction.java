@@ -1,24 +1,70 @@
 package com.example.mobilebank;
 
 public class Transaction {
-    private String transactionName;
+    private String transactionMsg;
     private String transactionDate;
-    private double amount;
+    private double transactionAmount;
     private String Bank;
+    private String transactionType;
+    private String acoountNumber;
+    private String smsMsg;
 
-    public Transaction(String transactionName, String transactionDate, double amount, String bank) {
-        this.transactionName = transactionName;
+    public String getSmsMsg() {
+        return smsMsg;
+    }
+
+    public void setSmsMsg(String smsMsg) {
+        this.smsMsg = smsMsg;
+    }
+
+    public String getTransactionMsg() {
+        return transactionMsg;
+    }
+
+    public String getAcoountNumber() {
+        return acoountNumber;
+    }
+
+    public void setAcoountNumber(String acoountNumber) {
+        this.acoountNumber = acoountNumber;
+    }
+
+    public void setTransactionMsg(String transactionMsg) {
+        this.transactionMsg = transactionMsg;
+    }
+
+    public double getTransactionAmount() {
+        return transactionAmount;
+    }
+
+    public void setTransactionAmount(double transactionAmount) {
+        this.transactionAmount = transactionAmount;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
+    }
+
+    public Transaction(String bank, String accountNumber, String transactionType, String transactionMsg, String transactionDate, double transactionamount) {
+        this.transactionMsg = transactionMsg;
         this.transactionDate = transactionDate;
-        this.amount = amount;
+        this.transactionAmount  = transactionamount;
         this.Bank = bank;
+        this.transactionType = transactionType;
+        this.acoountNumber = accountNumber;
+        this.smsMsg = getSmsMsg();
     }
 
     public String getTransactionName() {
-        return transactionName;
+        return transactionMsg;
     }
 
-    public void setTransactionName(String transactionName) {
-        this.transactionName = transactionName;
+    public void setTransactionName(String transactionMsg) {
+        this.transactionMsg = transactionMsg;
     }
 
     public String getTransactionDate() {
@@ -30,11 +76,11 @@ public class Transaction {
     }
 
     public double getAmount() {
-        return amount;
+        return transactionAmount;
     }
 
     public void setAmount(double amount) {
-        this.amount = amount;
+        this.transactionAmount  = amount;
     }
 
     public String getBank() {
