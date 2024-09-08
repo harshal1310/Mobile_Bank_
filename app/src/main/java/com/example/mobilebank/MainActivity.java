@@ -38,10 +38,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
 import com.klinker.android.logger.Log;
 
 
@@ -93,6 +89,20 @@ public class MainActivity extends AppCompatActivity {
 
     String balancePattern = "(?i)(?:Avl|Balance)\\s*(?:Bal(?:ance)?)?[:\\-]?\\s*(?:INR|Rs\\.?)?\\s*([\\d,]+(?:\\.\\d{1,2})?)";
 
+    String linkedToPattern = "(?i)linked to\\s+(.*)";
+    String toPattern = "(?i)to\\s+(.*)";
+    String frompPattern = "(?i)from\\s+(.*)";
+    String refNoPattern = "(?i)\\(Ref no (\\d+)\\)";
+    String upiRefNo = "(?i)UPI Ref No (\\d+)";
+    String btPattern = "(?i)by to s+(.*)";
+
+    Pattern linkedToRegex = Pattern.compile(linkedToPattern);
+    Pattern toRegex = Pattern.compile(toPattern);
+    Pattern fromRegex= Pattern.compile(frompPattern);
+    Pattern refNoRegex = Pattern.compile(refNoPattern);
+    Pattern upiRefRegex = Pattern.compile(upiRefNo);
+    Pattern byRegex = Pattern.compile(btPattern);
+
 
     // Compile the patterns
     Pattern bankRegex = Pattern.compile(bankPattern);
@@ -126,88 +136,44 @@ public class MainActivity extends AppCompatActivity {
         bankAccounts = new ArrayList<>();
         lasttransactions = new ArrayList<>();
 
+
         // Check for SMS permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 1);
-        } else {
+         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED)  {
 
 
             SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
             boolean isDataLoaded = sharedPreferences.getBoolean("isDataLoaded", false);
 
             if (!isDataLoaded) {
-                // Start AsyncTask to load data in background
-                new LoadSMSDataTask().execute();
-            } else {
-                // Load data from the database if already loaded
+               // new LoadSMSDataTask().execute();
                 loadDataFromDatabase();
+            } else {
+                loadDataFromDatabase();
+              //  updateUI();
             }
+         } else {
+             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 1);
+
+         }
+//Intent intent = new Intent(this,AccountTransactionsActivity.class);
+  //       intent.putExtra("accountNumber","340");
+    //                 startActivity(intent);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, call the method to load data
+               // loadDataFromDatabase();
+                new LoadSMSDataTask().execute();
 
 
-
-            new LoadSMSDataTask().execute();
+            } else {
+                // Permission denied, show a message to the user
+                Toast.makeText(this, "Permission denied to read SMS", Toast.LENGTH_SHORT).show();
+            }
         }
-        /*
-
-        HashMap<String,Transaction> recentTransactions = getRecentTransaction();
-        recentTransactions.forEach((accountNumber,transaction)->{
-            lasttransactions.add(new Transaction(transaction.getBank(), accountNumber, transaction.getTransactionType(), transaction.getTransactionMsg(),transaction.getTransactionDate(), transaction.getTransactionAmount()));
-
-        });
-
-        List<String> bankNames = new ArrayList<>();
-        for (BankAccount account : bankAccounts) {
-            bankNames.add(account.getBankName());
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 1);
-        }
-
-
-        HashMap<String, String> BankNamesWithAccounts = new HashMap<>();
-
-        List<SMSModel> list =readsms(BankNamesWithAccounts);
-
-        for (SMSModel sms : list) {
-            insertRecords(sms.getSender(), sms.getAccountnumber(),sms.getTransactionamount(),sms.getTransactionType(),sms.getDatetime(),sms.getMessage(),sms.getAvlBal());
-            //    public void insertRecords(String sender, String accountNumber, Double transactionAmount, String transactionType, String smsDate, String smsMsg, Double avlBal) {
-        }
-
-        HashMap<String,BankAccount> accounts = getAccountsInfo("", "");
-      //  for(Map.entry<>:account.getE)
-            accounts.forEach((accountNumber, bankAccount) -> {
-                // Perform your desired operations with accountNumber and bankAccount
-              //  System.out.println("Account Number: " + accountNumber);
-                //System.out.println("Bank Name: " + bankAccount.getBankName());
-               // System.out.println("Balance: " + bankAccount.getBalance());
-            //    bankAccount.getDateTime();
-                bankAccounts.add(new BankAccount(bankAccount.getBankName(), accountNumber, bankAccount.getBalance(), "axis"));
-
-                // Add more operations as needed
-            });
-
-        bankAdapter = new BankAdapter(bankAccounts, this);
-        transactionAdaptar = new TransactionAdapter(lasttransactions,this);
-
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);  // 2 columns
-        bankRecyclerView.setLayoutManager(gridLayoutManager);
-        bankRecyclerView.setAdapter(bankAdapter);
-
-        LinearLayoutManager linearLayoutManager= new LinearLayoutManager(this);
-        last_transactionView.setLayoutManager(linearLayoutManager);
-        last_transactionView.setAdapter(transactionAdaptar);
-
-
-        // Request SMS permission if not granted
-
-
-     //   new Handler().postDelayed(() -> {
-       //     Intent intent = new Intent(MainActivity.this, TransactionActivity.class);
-         //   startActivity(intent);
-           // finish(); // Optionally finish MainActivity so that it won't be in the back stack
-        //}, 2000); // 2000 milliseconds = 2 seconds
-
-         */
     }
 
 
@@ -227,19 +193,12 @@ public class MainActivity extends AppCompatActivity {
 
             for (SMSModel sms : list) {
                 insertRecords(sms.getSender(), sms.getAccountnumber(), sms.getTransactionamount(),
-                        sms.getTransactionType(), sms.getDatetime(), sms.getMessage(), sms.getAvlBal());
+                        sms.getTransactionType(), sms.getDatetime(), sms.getMessage(), sms.getAvlBal(),sms.getTransactionName());
             }
 
             HashMap<String, BankAccount> accounts = getAccountsInfo("", "");
-            accounts.forEach((accountNumber, bankAccount) -> {
-                bankAccounts.add(new BankAccount(bankAccount.getBankName(), accountNumber, bankAccount.getBalance(), "axis"));
-            });
 
-            List<Transaction> recentTransactions = getRecentTransaction();
-            recentTransactions.forEach((transaction) -> {
-                lasttransactions.add(new Transaction(transaction.getBank(), transaction.getAcoountNumber(), transaction.getTransactionType(),
-                        transaction.getTransactionMsg(), transaction.getTransactionDate(), transaction.getTransactionAmount()));
-            });
+
 
             return null;
         }
@@ -247,60 +206,77 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+            long loadingTime = 4000;
+            if (loadingTime < 5000) { // Minimum 5 seconds
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             // Hide progress bar after loading data
+            SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("isDataLoaded", true);
+            editor.apply();
+
+
             progressBar.setVisibility(View.GONE);
 
-            // Initialize adapters
-            bankAdapter = new BankAdapter(bankAccounts, MainActivity.this);
-            //transactionAdapter = new TransactionAdapter(lasttransactions, MainActivity.this);
-            transactionAdaptar = new TransactionAdapter(lasttransactions,MainActivity.this);
 
-
-            GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
-            bankRecyclerView.setLayoutManager(gridLayoutManager);
-            bankRecyclerView.setAdapter(bankAdapter);
-
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
-            last_transactionView.setLayoutManager(linearLayoutManager);
-            last_transactionView.setAdapter(transactionAdaptar);
+            updateUI();
         }
 
     }
 
     private void loadDataFromDatabase() {
         HashMap<String, String> BankNamesWithAccounts = new HashMap<>();
+        progressBar.setVisibility(View.VISIBLE);
+
         List<SMSModel> list = readsms(BankNamesWithAccounts);
 
         for (SMSModel sms : list) {
             insertRecords(sms.getSender(), sms.getAccountnumber(), sms.getTransactionamount(),
-                    sms.getTransactionType(), sms.getDatetime(), sms.getMessage(), sms.getAvlBal());
+                    sms.getTransactionType(), sms.getDatetime(), sms.getMessage(), sms.getAvlBal(), sms.getTransactionName());
         }
 
+        SharedPreferences sharedPreferences = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("isDataLoaded", true);
+        editor.apply();
+
+
+        updateUI();
+        progressBar.setVisibility(View.GONE);
+
+
+    }
+
+
+    private void updateUI() {
         HashMap<String, BankAccount> accounts = getAccountsInfo("", "");
         accounts.forEach((accountNumber, bankAccount) -> {
-            bankAccounts.add(new BankAccount(bankAccount.getBankName(), accountNumber, bankAccount.getBalance(), "axis"));
+            bankAccounts.add(new BankAccount(bankAccount.getBankName(), accountNumber, bankAccount.getBalance(), bankAccount.getBankName()));
         });
 
         List<Transaction> recentTransactions = getRecentTransaction();
         recentTransactions.forEach((transaction) -> {
             lasttransactions.add(new Transaction(transaction.getBank(), transaction.getAcoountNumber(), transaction.getTransactionType(),
-                    transaction.getTransactionMsg(), transaction.getTransactionDate(), transaction.getTransactionAmount()));
+                    transaction.getTransactionMsg(), transaction.getTransactionDate(), transaction.getTransactionAmount(),transaction.getBank()));
         });
-        bankAdapter = new BankAdapter(bankAccounts, MainActivity.this);
-        //transactionAdapter = new TransactionAdapter(lasttransactions, MainActivity.this);
-        transactionAdaptar = new TransactionAdapter(lasttransactions,MainActivity.this);
+            // Initialize adapters
+            bankAdapter = new BankAdapter(bankAccounts, this);
+            transactionAdaptar = new TransactionAdapter(lasttransactions, this);
 
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
+            bankRecyclerView.setLayoutManager(gridLayoutManager);
+            bankRecyclerView.setAdapter(bankAdapter);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
-        bankRecyclerView.setLayoutManager(gridLayoutManager);
-        bankRecyclerView.setAdapter(bankAdapter);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            last_transactionView.setLayoutManager(linearLayoutManager);
+            last_transactionView.setAdapter(transactionAdaptar);
+        }
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
-        last_transactionView.setLayoutManager(linearLayoutManager);
-        last_transactionView.setAdapter(transactionAdaptar);
-
-
-    }
 
 
     private HashMap<String, BankAccount> getAccountsInfo(String smsDatetime, String lastDateTime) {
@@ -432,8 +408,14 @@ public class MainActivity extends AppCompatActivity {
                   //  if (messageDate.after(cutoffDate)) {
                         SMSModel sms = new SMSModel(sender, message, timestamp);
                         sms.setDatetime(formattedDate);
-                        if (extractTransactionSMS(sms, bankNamesWithAccounts)) {
-                            smsList.add(sms);
+                        if(isLatestSMS(formattedDate)) {
+                            if (extractTransactionSMS(sms, bankNamesWithAccounts)) {
+                                smsList.add(sms);
+                            }
+                        } else
+                        {
+                            break;
+
                         }
                    // }
 
@@ -459,10 +441,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void insertRecords(String sender, String accountNumber, Double transactionAmount, String transactionType, String smsDate, String smsMsg, Double avlBal) {
+    public void insertRecords(String sender, String accountNumber, Double transactionAmount, String transactionType, String smsDate, String smsMsg, Double avlBal,String transactionName) {
 
 
-        if (isSmsDateGreaterThanLastDate(accountNumber, transactionType, transactionAmount, smsDate)) {
+        if (isSameTransactionRepeat(accountNumber, transactionType, transactionAmount, smsDate)) {
 
             Double lastAmount = 0.0;
             String latestDatetime = "";
@@ -488,11 +470,11 @@ public class MainActivity extends AppCompatActivity {
             }
             if (avlBal > -1) {
                 //dbHelper.addTransaction();
-                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, avlBal, avlBal, smsDate);
+                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, avlBal, avlBal, smsDate,transactionName);
 
             } else {
                 double TOTALBAL = lastAmount + transactionAmount;
-                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, TOTALBAL, avlBal, smsDate);
+                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, TOTALBAL, avlBal, smsDate,transactionName);
             }
 
         }
@@ -500,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SMSModel validataTransactionSMS(SMSModel sms,HashMap<String,String> BankNamesWithAccounts) {
 
-        Matcher bankMatcher = bankRegex.matcher(sms.getMessage());
+        Matcher bankMatcher = bankRegex.matcher(sms.getSender());
         Matcher transactionMatcherCreditor = transactionRegexCredit.matcher(sms.getMessage());
         Matcher transactionMatcherDebitor = transactionRegexWithdraw.matcher(sms.getMessage());
         Matcher cardMatcher = cardRegex.matcher(sms.getMessage());
@@ -516,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
         if (bankMatcher.find()) {
 
             bankName = bankMatcher.group();
+            sms.setSender(bankName);
 
             if (transactionMatcherCreditor.find()) {
                 transactionType = "Credit";
@@ -566,6 +549,90 @@ public class MainActivity extends AppCompatActivity {
                     Integer rowID = -1;
                     String latestDatetime = "";
 
+
+                    boolean found = false;
+
+                    // Check for the "linked to" pattern
+                    try {
+                        Matcher linkedToMatcher = linkedToRegex.matcher(sms.getMessage());
+                        if (linkedToMatcher.find()) {
+                            String extractedText = linkedToMatcher.group(1).trim();
+                            String[] words = extractedText.split("\\s+");
+                            StringBuilder result = new StringBuilder();
+                            for (int i = 0; i < Math.min(words.length, 3); i++) {
+                                result.append(words[i]).append(" ");
+                            }
+                            //   System.out.println("Extracted Info (linked to): " + result.toString().trim());
+                            found = true;
+                        }
+
+                        // If "linked to" pattern is not found, check for the "to" pattern
+                        if (!found) {
+                            Matcher toMatcher = toRegex.matcher(sms.getMessage());
+                            if (toMatcher.find()) {
+                                String extractedText = toMatcher.group(1).trim();
+                                String[] words = extractedText.split("\\s+");
+                                StringBuilder result = new StringBuilder();
+                                for (int i = 0; i < Math.min(words.length, 3); i++) {
+                                    result.append(words[i]).append(" ");
+                                }
+                                //   System.out.println("Extracted Info (to): " + result.toString().trim());
+                                sms.setTransactionName(result.toString().trim());
+                                found = true;
+                            }
+                        }
+
+                        // If neither "linked to" nor "to" patterns are found, check for the "from" pattern
+                        if (!found) {
+                            Matcher fromMatcher = fromRegex.matcher(sms.getMessage());
+                            if (fromMatcher.find()) {
+                                String extractedText = fromMatcher.group(1).trim();
+                                String[] words = extractedText.split("\\s+");
+                                StringBuilder result = new StringBuilder();
+                                for (int i = 0; i < Math.min(words.length, 3); i++) {
+                                    result.append(words[i]).append(" ");
+                                }
+                                sms.setTransactionName(result.toString().trim());
+
+                                // System.out.println("Extracted Info (from): " + result.toString().trim());
+                                found = true;
+                            }
+                        }
+
+                        // If neither "linked to", "to", nor "from" were found, check for reference numbers
+                        if (!found) {
+                            Matcher refNoMatcher = refNoRegex.matcher(sms.getMessage());
+                            if (refNoMatcher.find()) {
+                                //   System.out.println("Extracted Info (Ref No): " + refNoMatcher.group());
+                                String tranactionName = refNoMatcher.group().toString().trim();
+                                sms.setTransactionName(tranactionName);
+                                found = true;
+
+                            }
+
+                            Matcher upiRefNoMatcher = upiRefRegex.matcher(sms.getMessage());
+                            if (upiRefNoMatcher.find()) {
+                                // System.out.println("Extracted Info (UPI Ref No): " + upiRefNoMatcher.group());
+                                String tranactionName = refNoMatcher.group().toString().trim();
+
+                                sms.setTransactionName(tranactionName);
+                                found = true;
+
+                            }
+                        }
+                        if(!found)  {
+                            String[] words = sms.getMessage().split("\\s+");
+                            StringBuilder result = new StringBuilder();
+                            for (int i = 0; i < Math.min(words.length, 3); i++) {
+                                result.append(words[i]).append(" ");
+                            }
+                            sms.setTransactionName(result.toString().trim());
+                        }
+                    } catch(Exception e) {
+
+                    }
+
+
                     amountNumber = amountNumber.replaceAll(",", ""); // Remove commas from the balance
 
 
@@ -598,12 +665,12 @@ public class MainActivity extends AppCompatActivity {
 
         return null;
     }
-    boolean isSmsDateGreaterThanLastDate(String accountNumber, String transactionType, Double transactionAmount, String smsDateTime) {
+    boolean isSameTransactionRepeat(String accountNumber, String transactionType, Double transactionAmount, String smsDateTime) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String latestDatetime = "";
 
         // Query to fetch the latest transaction entry for the given account number, transaction type, and amount
-        String avlBalanceQuery = "SELECT " + SMSDatabaseHelper.COLUMN_TIMESTAMP +
+        String isSameTransactionQuery = "SELECT " + SMSDatabaseHelper.COLUMN_TIMESTAMP +
                 " FROM " + SMSDatabaseHelper.TABLE_NAME +
                 " WHERE " + SMSDatabaseHelper.COLUMN_ACCOUNT_NUMBER + " = ? AND " +
                 SMSDatabaseHelper.COLUMN_TRANSACTION_TYPE + " = ? AND " +
@@ -611,7 +678,7 @@ public class MainActivity extends AppCompatActivity {
                 " ORDER BY " + SMSDatabaseHelper.COLUMN_ID + " DESC LIMIT 1";
         String transactionAmountStr = String.valueOf(transactionAmount);
 
-        try (Cursor accountCursor = db.rawQuery(avlBalanceQuery, new String[]{accountNumber, transactionType, transactionAmountStr})) {
+        try (Cursor accountCursor = db.rawQuery(isSameTransactionQuery, new String[]{accountNumber, transactionType, transactionAmountStr})) {
             if (accountCursor.moveToFirst()) {
                 // Get the latest timestamp
                 latestDatetime = accountCursor.getString(0);
@@ -668,10 +735,10 @@ public class MainActivity extends AppCompatActivity {
                     String accountNumber = bankNameCursor.getString(1);
                     double amount = bankNameCursor.getDouble(2);
                     String timestamp = bankNameCursor.getString(3);
-                    String transactionType = bankNameCursor.getString(4);
-                    String transactionMsg = bankNameCursor.getString(5);
+                    String transactionMsg = bankNameCursor.getString(4);
+                    String  transactionType = bankNameCursor.getString(5);
 
-                    Transaction transaction =  new Transaction( bankName,  accountNumber,  transactionType,  transactionMsg,  timestamp,  amount);
+                    Transaction transaction =  new Transaction( bankName,  accountNumber,  transactionType,  transactionMsg,  timestamp,  amount,bankName);
 
 
                         //    bankAccount.setAccountNumber(accountNumber);
@@ -689,6 +756,54 @@ public class MainActivity extends AppCompatActivity {
         }
         return recentTransactionList;
     }
+
+    private boolean isLatestSMS(String smsTime) {
+
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            String latestDatetime = "";
+
+            // Query to fetch the latest transaction entry for the given account number, transaction type, and amount
+            String isSameTransactionQuery = "SELECT " + SMSDatabaseHelper.COLUMN_TIMESTAMP +
+                    " FROM " + SMSDatabaseHelper.TABLE_NAME +
+
+                    " ORDER BY " + SMSDatabaseHelper.COLUMN_ID + " DESC LIMIT 1";
+           // String transactionAmountStr = String.valueOf(transactionAmount);
+
+            try (Cursor accountCursor = db.rawQuery(isSameTransactionQuery, null)) {
+                if (accountCursor.moveToFirst()) {
+                    // Get the latest timestamp
+                    latestDatetime = accountCursor.getString(0);
+                }
+            } catch (Exception e) {
+                Log.e("TransactionActivity", "Error fetching last transaction timestamp", e);
+            }
+
+            if (latestDatetime.isEmpty()) {
+                // No previous transaction found, so the new SMS is considered greater.
+                return true;
+            }
+
+            Date lastDate = null;
+            Date smsDate = null;
+            try {
+                // Parse the date strings into Date objects
+                lastDate = dateFormat.parse(latestDatetime);
+                smsDate = dateFormat.parse(smsTime);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            if (lastDate != null && smsDate != null) {
+                // Check if SMS date is after the last date
+                long differenceInMillis = smsDate.getTime() - lastDate.getTime();
+
+                // Check if the SMS date is greater than the last date and the interval is more than 55 minutes
+                return smsDate.after(lastDate) ;
+            }
+
+            return false; // If parsing failed or any other issue occurred
+
+        }
 
 
 }

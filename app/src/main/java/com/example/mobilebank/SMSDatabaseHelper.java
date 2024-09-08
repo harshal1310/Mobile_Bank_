@@ -20,6 +20,7 @@ public class SMSDatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_TOTAL_BALANCE = "total_balance";
     public static final String COLUMN_MSG = "SMS_MSG";
     public static final String COLUMN_TIMESTAMP = "datetime"; // Updated to datetime    private static final String TABLE_CREATE =
+    public static final String COLUMN_TRANSACTION_NAME = "transaction_Name";
     private static final String TABLE_CREATE =
             "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -30,6 +31,7 @@ public class SMSDatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_AVL_BALANCE + " DOUBLE, " +
                     COLUMN_MSG + " TEXT, " +
                     COLUMN_TIMESTAMP + " DATETIME DEFAULT CURRENT_TIMESTAMP, " + // Updated to DATETIME
+                    COLUMN_TRANSACTION_NAME + " TEXT, " +
                     COLUMN_ACCOUNT_NUMBER + " TEXT);";
 
     public SMSDatabaseHelper(Context context) {
@@ -47,7 +49,7 @@ public class SMSDatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void addTransaction(String BankName,String Msg, Double amount, String transactionType, String accountNumber,Double totalBalance,Double avlBalance,String date) {
+    public void addTransaction(String BankName,String Msg, Double amount, String transactionType, String accountNumber,Double totalBalance,Double avlBalance,String date,String transactionName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_SENDER, BankName);
@@ -58,6 +60,7 @@ public class SMSDatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_TOTAL_BALANCE, totalBalance);
         values.put(COLUMN_AVL_BALANCE,avlBalance);
         values.put(COLUMN_TIMESTAMP,date);
+        values.put(COLUMN_TRANSACTION_NAME,transactionName);
 
         db.insert(TABLE_NAME, null, values);
 

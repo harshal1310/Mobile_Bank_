@@ -1,6 +1,7 @@
 package com.example.mobilebank;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,10 +29,10 @@ public class BankAdapter extends RecyclerView.Adapter<BankAdapter.BankViewHolder
     }
     private void initializeLogoMap() {
         logoMap = new HashMap<>();
-        logoMap.put("sbi", R.drawable.sbi); // Replace with actual drawable names
-        logoMap.put("hdfc", R.drawable.hdfc);
-        logoMap.put("icici",R.drawable.icici);
-        logoMap.put("axis",R.drawable.axis);
+        logoMap.put(Constants.SBI, R.drawable.sbi); // Replace with actual drawable names
+        logoMap.put(Constants.HDFC, R.drawable.hdfc);
+        logoMap.put(Constants.ICICI,R.drawable.icici);
+        logoMap.put(Constants.AXIS,R.drawable.axis);
         // Add more mappings as needed
     }
 
@@ -54,6 +55,11 @@ public class BankAdapter extends RecyclerView.Adapter<BankAdapter.BankViewHolder
         } else {
             holder.bankImage.setImageResource(R.drawable.sbi); // Fallback logo
         }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AccountTransactionsActivity.class);
+            intent.putExtra("accountNumber", account.getAccountNumber());
+            context.startActivity(intent);
+        });
 
         // Optionally set up another RecyclerView or any additional logic here if needed
     }

@@ -8,6 +8,30 @@ public class Transaction {
     private String transactionType;
     private String acoountNumber;
     private String smsMsg;
+    private String logoResId;
+    private boolean isIncome;
+    private String transactionName;
+
+
+    public boolean isIncome() {
+        return isIncome;
+    }
+
+    public void setIncome(boolean income) {
+        isIncome = income;
+    }
+    public void setTransactioName(String transactionName) {
+        this.transactionName = transactionName;
+    }
+
+
+    public String getLogoResId() {
+        return logoResId;
+    }
+
+    public void setLogoResId(String logoResId) {
+        this.logoResId = logoResId;
+    }
 
     public String getSmsMsg() {
         return smsMsg;
@@ -49,18 +73,19 @@ public class Transaction {
         this.transactionType = transactionType;
     }
 
-    public Transaction(String bank, String accountNumber, String transactionType, String transactionMsg, String transactionDate, double transactionamount) {
+    public Transaction(String bank, String accountNumber, String transactionType, String transactionMsg, String transactionDate, double transactionamount,String logoResId) {
         this.transactionMsg = transactionMsg;
         this.transactionDate = transactionDate;
         this.transactionAmount  = transactionamount;
         this.Bank = bank;
         this.transactionType = transactionType;
         this.acoountNumber = accountNumber;
-        this.smsMsg = getSmsMsg();
+        this.smsMsg = transactionMsg;
+        this.logoResId = logoResId;
     }
 
     public String getTransactionName() {
-        return transactionMsg;
+        return transactionName;
     }
 
     public void setTransactionName(String transactionMsg) {

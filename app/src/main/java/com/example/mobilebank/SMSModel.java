@@ -1,7 +1,7 @@
 package com.example.mobilebank;
 
 public class SMSModel {
-    private String sender,message,datetime,accountnumber,transactionType;
+    private String sender,message,datetime,accountnumber,transactionType,transactionName;
     private long timeStamp;
     private Double avlBal,transactionamount;
 
@@ -15,6 +15,14 @@ public class SMSModel {
 
     public String getTransactionType() {
         return transactionType;
+    }
+
+    public String getTransactionName() {
+        return transactionName;
+    }
+
+    public void setTransactionName(String transactionName) {
+        this.transactionName = transactionName;
     }
 
     public void setTransactionType(String transactionType) {

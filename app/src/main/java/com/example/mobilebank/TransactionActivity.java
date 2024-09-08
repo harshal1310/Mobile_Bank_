@@ -184,7 +184,7 @@ public class TransactionActivity extends AppCompatActivity {
 
 
     public void buttonForward() {
-        HashMap<String, String> BankNamesWithAccounts = new HashMap<>();
+      /*  HashMap<String, String> BankNamesWithAccounts = new HashMap<>();
         try {
             // Ensure permission is granted
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -443,7 +443,7 @@ public class TransactionActivity extends AppCompatActivity {
         } catch (Exception e) {
             textView.setText("An error occurred: " + e.getMessage());
             Log.e("TransactionActivity", "Error processing SMS", e);
-        }
+        }*/
     }
 
     private HashMap<String, BankAccount> getAccountsInfo(String smsDatetime, String lastDateTime) {
@@ -682,13 +682,13 @@ public class TransactionActivity extends AppCompatActivity {
             if (avlBal > -1) {
                 //dbHelper.addTransaction();
                // textView.append("\nFrom:"+ sender + "\nsms:"+smsMsg+"\ntransactionAmount:"+transactionAmount + "\ntransactionType:"+transactionType+"\naccounumber:"+accountNumber+"\nablbal:"+avlBal+"\ndate:"+smsDate);
-                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, avlBal, avlBal, smsDate);
+            //    dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, avlBal, avlBal, smsDate);
 
             } else {
                 double TOTALBAL = lastAmount + transactionAmount;
            //     textView.append("\nFrom:"+ sender + "\nsms:"+smsMsg+"\ntransactionAmount:"+transactionAmount + "\ntransactionType:"+transactionType+"\naccounumber:"+accountNumber+"\ntotalbal:"+TOTALBAL+"\ndate:"+smsDate);
 
-                dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, TOTALBAL, avlBal, smsDate);
+              //  dbHelper.addTransaction(sender, smsMsg, transactionAmount, transactionType, accountNumber, TOTALBAL, avlBal, smsDate);
             }
 
         }
